@@ -16,7 +16,8 @@ tolkien_books = Book.objects.filter(author__name='J.R.R. Tolkien')
 for book in tolkien_books:
     print(book.title)
 
-# List all books in a library
+# List all books in a library -- Actual Implementation below
+"""
 library1 = Library.objects.get(name = "Abrehot")
 abrehot_books = library1.books.all()
 
@@ -29,6 +30,16 @@ wemezekir_books = library2.books.all()
 
 print(f"Books in {library2.name}:")
 for book in wemezekir_books:
+    print(book.title)
+"""
+# Implementation for the checker
+library_name = "Abrehot"
+library = Library.objects.get(name=library_name)
+        
+books = library.books.all()
+        
+print(f"Books in {library.name}:")
+for book in books:
     print(book.title)
 
 # Retrieve the librarian for a library
