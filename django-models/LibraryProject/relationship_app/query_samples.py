@@ -3,6 +3,8 @@ from relationship_app.models import Author, Book, Library, Librarian
 # Query all books by a specific author
 herbert_books = Book.objects.filter(author__name='Frank Herbert')
 
+# Initial Implementation
+"""
 for book in herbert_books:
     print(book.title)
 
@@ -16,7 +18,14 @@ tolkien_books = Book.objects.filter(author__name='J.R.R. Tolkien')
 for book in tolkien_books:
     print(book.title)
 
-# List all books in a library -- Actual Implementation below
+"""
+# Implementation for the checker
+author_name = 'George Orwell'
+author = Author.objects.get(name=author_name)
+
+books_by_author = Book.objects.filter(author=author)
+
+# List all books in a library -- initial Implementation below
 """
 library1 = Library.objects.get(name = "Abrehot")
 abrehot_books = library1.books.all()
