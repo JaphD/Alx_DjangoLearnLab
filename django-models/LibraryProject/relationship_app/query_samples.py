@@ -17,14 +17,14 @@ for book in tolkien_books:
     print(book.title)
 
 # List all books in a library
-library1 = Library.objects.get(id=1)
+library1 = Library.objects.get(name = "Abrehot")
 abrehot_books = library1.books.all()
 
 print(f"Books in {library1.name}:")
 for book in abrehot_books:
     print(book.title)
 
-library2 = Library.objects.get(id=2)
+library2 = Library.objects.get(name = "Wemezekir")
 wemezekir_books = library2.books.all()
 
 print(f"Books in {library2.name}:")
