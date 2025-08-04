@@ -52,8 +52,8 @@ for book in books:
     print(book.title)
 
 # Retrieve the librarian for a library
-librarian1 = library1.librarian
+library1 = Library.objects.get(id=1)
+librarian1 = Librarian.objects.get(library= library1)
 print(librarian1)
 
-librarian2 = library2.librarian
-print(librarian2)
+
