@@ -1,7 +1,8 @@
 from django.http import HttpResponse
 from django.views.generic import ListView
 from django.views.generic import DetailView
-from .models import Book, Library
+from .models import Library
+from .models import Book
 
 # Implement Function-based view
 def book_list(request):
