@@ -21,7 +21,7 @@ def book_list(request):
     # Return an HttpResponse with the formatted text
     return HttpResponse(book_list_text, content_type="text/plain")
 
-class BookListView(ListView):
+class list_books(ListView):
     model = Book
     template_name = 'relationship_app/list_books.html'
     context_object_name = 'books'
