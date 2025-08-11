@@ -1,8 +1,8 @@
 from django.http import HttpResponse
-from django.views.generic.list import ListView
-from django.views.generic.detail import DetailView
-from .models import Library
-from .models import Book
+from django.views.generic import ListView, DetailView
+from .models import Library, Book
+from django.shortcuts import render, redirect
+from django.contrib.auth.forms import UserCreationForm
 
 # Implement Function-based view
 def book_list(request):
@@ -30,3 +30,19 @@ class LibraryDetailView(DetailView):
     model = Library
     template_name = 'relationship_app/library_detail.html'
     context_object_name = 'library'
+
+# Views for user authentication
+# Registration View
+def register(request):
+    """Handles user registration."""
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('relationship_app:login')
+    else:
+        # If it's a GET request, create a blank form
+        form = UserCreationForm()
+    return render(request, "relationship_app/register.html", {"form": form})
+    
+
