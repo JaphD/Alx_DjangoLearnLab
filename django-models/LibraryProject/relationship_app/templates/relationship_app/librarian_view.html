@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Librarian-View</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <h1>Welcome, {{ username }}!</h1>
+    <p>You are logged in as <strong>{{ role }}</strong>.</p>
+    <hr>
+    <h2>Librarian Tools</h2>
+    <ul>
+        <li><a href="{% url 'relationship_app:book_list' %}">View & Edit Books</a></li>
+        <li><a href="#">Manage Borrow Records</a></li>
+        <li><a href="#">Library Inventory</a></li>
+    </ul>
+
+
+</body>
+</html>

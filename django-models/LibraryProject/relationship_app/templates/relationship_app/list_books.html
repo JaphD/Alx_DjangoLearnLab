@@ -17,5 +17,21 @@
         <li>{{ book.title }} by {{ book.author.name }}</li>
         {% endfor %}
     </ul>
+    <h2>Check what you can access</h2>
+    <ul>
+        {% if user.userprofile.role == "Admin" %}
+        <a href="{% url 'relationship_app:admin_view' %}"><button>Go to Admin Page</button></a>
+        {% endif %}
+    </ul>
+    <ul>
+        {% if user.userprofile.role == "Librarian" %}
+        <a href="{% url 'relationship_app:librarian_view' %}"><button>Go to Librarian Page</button></a>
+        {% endif %}
+    </ul>
+    <ul>
+        {% if user.userprofile.role == "Member" %}
+        <a href="{% url 'relationship_app:member_view' %}"><button>Go to Member Page</button></a>
+        {% endif %}
+    </ul>
 </body>
 </html>
