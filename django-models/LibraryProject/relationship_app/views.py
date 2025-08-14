@@ -1,13 +1,10 @@
 from django.http import HttpResponse
 from django.views.generic import ListView, DetailView
-from .models import Library, Book
-from django.shortcuts import render, redirect
+from .models import Library, Book, Author
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login, logout
-from django.contrib import messages
-from django.contrib.auth.decorators import user_passes_test
-
-
+from django.contrib.auth.decorators import user_passes_test, permission_required
 
 
 
@@ -45,7 +42,6 @@ def register_view(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, "Account created successfully. Please log in.")
             return redirect('relationship_app:login')
     else:
         form = UserCreationForm()
@@ -106,6 +102,55 @@ def member_view(request):
         'role': 'Member'
     })
 
+# Add a book
+@permission_required('relationship_app.can_add_book', raise_exception=True)
+def add_book(request):
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        author_name = request.POST.get('author')
+        publication_year = request.POST.get('publication_year')
+
+        # Get or create the Author object
+        author, _ = Author.objects.get_or_create(name=author_name)
+
+        Book.objects.create(
+            title=title, 
+            author=author, 
+            publication_year=publication_year
+        )
+        return redirect('relationship_app:book_list')
+    
+    return render(request, 'relationship_app/add_book.html')
+
+# Edit a book
+@permission_required('relationship_app.can_change_book', raise_exception=True)
+def edit_book(request, book_id):
+    book = get_object_or_404(Book, id=book_id)
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        author_name = request.POST.get('author')
+        publication_year = request.POST.get('publication_year')
+
+        # Update title & year
+        book.title = title
+        book.publication_year = publication_year
+
+        # Get or create Author instance
+        author, _ = Author.objects.get_or_create(name=author_name)
+        book.author = author
+
+        book.save()
+        return redirect('relationship_app:book_list')
+    return render(request, 'relationship_app/edit_book.html', {'book': book})
+
+# Delete a book
+@permission_required('relationship_app.can_delete_book', raise_exception=True)
+def delete_book(request, book_id):
+    book = get_object_or_404(Book, id=book_id)
+    if request.method == 'POST':
+        book.delete()
+        return redirect('relationship_app:book_list')
+    return render(request, 'relationship_app/delete_book.html', {'book': book})
 
 
 
