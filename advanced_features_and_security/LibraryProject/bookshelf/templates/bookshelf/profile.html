@@ -5,9 +5,9 @@
     <h2>{{ user.username }}'s Profile</h2>
 
     <div class="profile-details">
-        {% if user.profile_picture %}
+        {% if user.profile_photo %}
             <img
-                src="{{ user.profile_picture.url }}"
+                src="{{ user.profile_photo.url }}"
                 alt="{{ user.username }}’s Avatar"
                 class="profile-pic"
                 width="150"

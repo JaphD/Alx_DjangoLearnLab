@@ -19,7 +19,7 @@ from django.urls import path, include
 from bookshelf.views import home_view
 
 urlpatterns = [
-    path('', home_view, name='home'),
+    path('home/', home_view, name='home'),
     path('admin/', admin.site.urls),
     path('bookshelf/', include('bookshelf.urls')),
     path('relationship_app/', include('relationship_app.urls')),

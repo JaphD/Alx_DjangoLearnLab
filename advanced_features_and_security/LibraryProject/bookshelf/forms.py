@@ -5,7 +5,7 @@ from .models import CustomUser
 class CustomUserCreationForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = CustomUser
-        fields = ('username', 'email', 'first_name', 'last_name', 'phone_number', 'date_of_birth', 'profile_picture')
+        fields = ('username', 'email', 'first_name', 'last_name', 'phone_number', 'date_of_birth', 'profile_photo')
 
         widgets = {
                 'date_of_birth': forms.DateInput(
@@ -16,7 +16,7 @@ class CustomUserCreationForm(UserCreationForm):
 class CustomUserChangeForm(UserChangeForm):
     class Meta:
         model = CustomUser
-        fields = ('username', 'email', 'first_name', 'last_name', 'phone_number', 'date_of_birth', 'profile_picture')
+        fields = ('username', 'email', 'first_name', 'last_name', 'phone_number', 'date_of_birth', 'profile_photo')
 
         widgets = {
                 'date_of_birth': forms.DateInput(
