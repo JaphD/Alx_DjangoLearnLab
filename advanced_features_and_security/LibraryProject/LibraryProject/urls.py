@@ -21,7 +21,7 @@ from bookshelf.views import home_view
 urlpatterns = [
     path('home/', home_view, name='home'),
     path('admin/', admin.site.urls),
-    path('bookshelf/', include('bookshelf.urls')),
+    path('', include('bookshelf.urls')),
     path('relationship_app/', include('relationship_app.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
 ]
