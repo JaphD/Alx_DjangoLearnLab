@@ -1,0 +1,27 @@
+{# templates/list_books.html #}
+{% extends "base.html" %}
+
+{% block title %}List of Books{% endblock %}
+
+{% block content %}
+  <h1>📚 Books Available</h1>
+
+  {% if books %}
+    <ul class="book-list">
+      {% for book in books %}
+        <li>
+          <strong>{{ book.title }}</strong> by {{ book.author.name }}
+          <em>({{ book.publication_year }})</em>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No books available at the moment.</p>
+  {% endif %}
+
+  <form action="{% url 'bookshelf:logout' %}" method="post" style="margin-bottom: 1em;">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Logout</button>
+  </form>
+
+{% endblock %}

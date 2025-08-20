@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Library Management System{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/styling.css' %}">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <a href="{% url 'relationship_app:book-list' %}" class="nav-brand">📚 Library</a>
+            <div class="nav-links">
+                {% if user.is_authenticated %}
+                    <form action="{% url 'bookshelf:logout' %}" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link logout-btn">Logout</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'bookshelf:login' %}">Login</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}
+        <!-- Page-specific content goes here -->
+        {% endblock %}
+    </main>
+
+    <footer>
+        <p>&copy; {{ year|default:2025 }} Library System</p>
+    </footer>
+</body>
+</html>

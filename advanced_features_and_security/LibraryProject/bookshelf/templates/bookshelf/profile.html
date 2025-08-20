@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="profile-container">
+    <h2>{{ user.username }}'s Profile</h2>
+
+    <div class="profile-details">
+        {% if user.profile_picture %}
+            <img
+                src="{{ user.profile_picture.url }}"
+                alt="{{ user.username }}’s Avatar"
+                class="profile-pic"
+                width="150"
+                height="150"
+            >
+        {% else %}
+            <p><em>No profile picture was uploaded.</em></p>
+        {% endif %}
+
+        <ul class="profile-info">
+            <li><strong>Email:</strong> {{ user.email }}</li>
+            <li><strong>Phone Number:</strong> {{ user.phone_number|default:"Not provided" }}</li>
+            <li><strong>Date of Birth:</strong> {{ user.date_of_birth|date:"F j, Y"|default:"Not provided" }}</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
