@@ -111,6 +111,25 @@ button:hover {
     border-bottom: 1px solid #eee;
 }
 
+.book-actions {
+  display: inline-flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.book-actions a {
+  text-decoration: none;
+  color: #0077cc;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  background-color: #e7f1fc;
+}
+
+.book-actions a:hover {
+  background-color: #d0e7fb;
+}
+
+
 
 
 
