@@ -48,7 +48,7 @@ def profile_view(request):
     return render(request, 'bookshelf/profile.html')
 
 @permission_required('relationship_app.can_view', raise_exception=True)
-def list_books_view(request):
+def book_list(request):
     books = Book.objects.select_related('author').all()
     return render(request, 'relationship_app/list_books.html', {'books': books})
 
