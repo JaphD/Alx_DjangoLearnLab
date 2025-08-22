@@ -25,7 +25,17 @@ SECRET_KEY = 'django-insecure-*(a-o$flci19#wn@(mq@dw1z6vd2z842)c%tp69^!3$ipo^5)w
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = [
+    'localhost', 
+    '127.0.0.1',
+    'library-management-system.duckdns.org',
+    
+]
+
+SECIRE_SSL_REDIRECT = True
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
 
 # Browser XSS & MIME protection
 SECURE_BROWSER_XSS_FILTER = True
@@ -54,6 +64,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'csp.middleware.CSPMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -156,6 +167,14 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
+# Where collectstatic will copy all static assets
+
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# WhiteNoise storage backend: compress + fingerprint filenames
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 LOGIN_URL = 'bookshelf:login'
 LOGIN_REDIRECT_URL = 'bookshelf:profile'

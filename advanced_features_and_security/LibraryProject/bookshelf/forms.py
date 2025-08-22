@@ -2,7 +2,6 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from .models import CustomUser
 from django import forms
-from .models import Book
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -26,17 +25,4 @@ class CustomUserChangeForm(UserChangeForm):
                     attrs={'type': 'date'}  # This tells the browser to show a date picker
                 )
             }
-
-
-class ExampleForm(forms.ModelForm):
-    class Meta:
-        model = Book
-        fields = [
-            'title',
-            'author_name',
-            'publication_year',
-        ]
-        widgets = {
-            'publication_year': forms.NumberInput(attrs={'min': 0}),
-        }
 

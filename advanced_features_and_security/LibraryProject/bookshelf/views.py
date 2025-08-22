@@ -3,9 +3,6 @@ from django.utils.timezone import now
 from django.contrib.auth import login, logout, authenticate
 from .forms import CustomUserCreationForm
 from django.contrib.auth.decorators import login_required
-from .forms import ExampleForm
-
-
 
 
 # Create your views here.
@@ -48,14 +45,4 @@ def logout_view(request):
 def profile_view(request):
     return render(request, 'bookshelf/profile.html')
 
-def book_form_view(request, pk=None):
-    form = ExampleForm(request.POST or None, request.FILES or None)
-
-    if form.is_valid():
-        form.save()
-        return redirect('bookshelf:book_list')
-
-    return render(request, 'bookshelf/form_example.html', {
-        'form': form
-    })
 
