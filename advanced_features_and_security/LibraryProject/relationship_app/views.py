@@ -4,6 +4,9 @@ from django.contrib.auth.decorators import permission_required
 from django.shortcuts import get_object_or_404, redirect
 from .models import Book, Author
 from .forms import BookForm
+from django.db import transaction
+
+
 
 @permission_required('relationship_app.can_view', raise_exception=True)
 def list_books_view(request):
@@ -55,7 +58,17 @@ def edit_book(request, pk):
 @permission_required('relationship_app.can_delete', raise_exception=True)
 def delete_book(request, pk):
     book = get_object_or_404(Book, pk=pk)
+    author = book.author  # capture the related author
+
     if request.method == 'POST':
-        book.delete()
+        with transaction.atomic():
+            book.delete()
+            author.delete()
         return redirect('relationship_app:book-list')
-    return render(request, 'relationship_app/book_confirm_delete.html', {'book': book})
+
+    return render(
+        request,
+        'relationship_app/book_confirm_delete.html',
+        {'book': book}
+    )
+

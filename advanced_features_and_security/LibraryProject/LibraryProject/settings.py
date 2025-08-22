@@ -23,9 +23,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-*(a-o$flci19#wn@(mq@dw1z6vd2z842)c%tp69^!3$ipo^5)w'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+
+# Browser XSS & MIME protection
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF   = True
+
+# Clickjacking protection
+X_FRAME_OPTIONS = 'DENY'  # or 'SAMEORIGIN' if framing is needed
+
+# Cookies over HTTPS only
+CSRF_COOKIE_SECURE    = True
+SESSION_COOKIE_SECURE = True
 
 
 # Application definition
@@ -44,12 +55,19 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'csp.middleware.CSPMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC  = ("'self'", "https://cdnjs.cloudflare.com")
+CSP_STYLE_SRC   = ("'self'", "https://fonts.googleapis.com")
+CSP_IMG_SRC     = ("'self'", "data:")
+
 
 ROOT_URLCONF = 'LibraryProject.urls'
 
@@ -131,7 +149,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+# URL prefix for static files
+STATIC_URL = '/static/'
+
+# Where Django looks for your dev static files
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
