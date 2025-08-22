@@ -41,6 +41,9 @@ SECURE_HSTS_PRELOAD = True
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF   = True
 
+# Used when the application is behind a proxy/load balancer that handles SSL
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 # Clickjacking protection
 X_FRAME_OPTIONS = 'DENY'  # or 'SAMEORIGIN' if framing is needed
 
