@@ -38,7 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'api',
+    
 ]
 
 MIDDLEWARE = [
@@ -52,6 +54,14 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'api_project.urls'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',  # Enables token-based auth
+        'rest_framework.authentication.SessionAuthentication',  # Optional: For browser-based testing
+    ],
+    # You can add other settings like pagination or throttling here if needed
+}
 
 TEMPLATES = [
     {
