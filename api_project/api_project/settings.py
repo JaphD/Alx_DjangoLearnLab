@@ -60,6 +60,9 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',  # Enables token-based auth
         'rest_framework.authentication.SessionAuthentication',  # Optional: For browser-based testing
     ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ]
     # You can add other settings like pagination or throttling here if needed
 }
 
