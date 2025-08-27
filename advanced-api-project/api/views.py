@@ -1,11 +1,11 @@
 from rest_framework import generics, permissions, filters, status
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.response import Response
+from django_filters import rest_framework
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Book
 from .serializers import BookSerializer
 
-# DetailView: Retrieve single book
+# ListView: Retrieve all books
 
 class ListView(generics.ListAPIView):
     """
@@ -23,6 +23,7 @@ class ListView(generics.ListAPIView):
     ordering_fields = ['publication_year']
     ordering = ['-publication_year']
 
+# DetailView: Retrieve single book
 
 class DetailView(generics.RetrieveAPIView):
     """
@@ -96,6 +97,9 @@ class UpdateView(generics.UpdateAPIView):
 # DeleteView: Remove a book
 
 class DeleteView(generics.DestroyAPIView):
+    """
+
+    """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = [permissions.IsAuthenticated]
