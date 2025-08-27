@@ -13,7 +13,7 @@ class BookSerializer(serializers.ModelSerializer):
 
            # Defines which model fields will be included in serialized representations.
 
-          fields = ['id', 'title', 'publication_year']
+          fields = ['id', 'title', 'publication_year', 'author']
 
 
 class AuthorSerializer(serializers.ModelSerializer):
