@@ -1,4 +1,5 @@
 from rest_framework import generics, permissions, filters, status
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Book
