@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
+from django.contrib import messages  # <-- Add this import
 from .forms import CustomUserCreationForm
 from django.contrib.auth.decorators import login_required
 
@@ -16,6 +17,9 @@ def register_view(request):
             # Save new user and redirect to login page
             form.save()
             return redirect('blog:login')
+        else:
+            # Add error message if form is invalid
+            messages.error(request, "Please correct the errors below.")
     else:
         # Display empty registration form
         form = CustomUserCreationForm()
@@ -30,13 +34,17 @@ def login_view(request):
         identifier = request.POST.get('identifier')
         password = request.POST.get('password')
 
-        # Authenticate user
+        # Attempt to authenticate user
         user = authenticate(request, username=identifier, password=password)
         if user is not None and user.is_active:
             # Log in and redirect to profile page
             login(request, user)
+            messages.success(request, "Login successful!")  # Confirmation message
             return redirect('blog:user_profile')
-        
+        else:
+            # Add error message for invalid credentials
+            messages.error(request, "Invalid credentials. Please try again.")
+
     # Render login page, passing back identifier for convenience
     return render(request, 'blog/login.html', {'identifier': identifier})
 
