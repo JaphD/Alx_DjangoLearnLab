@@ -186,3 +186,132 @@ Change email, upload an image, and submit.
 Check success message and updated data.
 
 Try accessing profile as anonymous → should redirect to login.
+
+
+Blog Post Management (CRUD) — Feature Documentation
+1. Overview
+
+This feature allows users to create, read, update, and delete blog posts in the Django Blog project.
+
+Post model: Stores blog post data (title, content, published_date, author).
+
+CRUD operations: Implemented using Django class-based views (CBVs).
+
+Templates: Provides a user-friendly interface for all operations.
+
+Permissions: Ensures only authorized users can create/edit/delete posts.
+
+2. Models
+class Post(models.Model):
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    published_date = models.DateTimeField(auto_now_add=True)
+    author = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.title
+
+    def get_absolute_url(self):
+        return reverse('blog:post_detail', kwargs={'pk': self.pk})
+
+
+Notes:
+
+author links each post to a registered user.
+
+get_absolute_url() is used to redirect users after creating/updating a post.
+
+3. Views
+
+PostListView: Displays all blog posts to any user.
+
+PostDetailView: Displays a single post. Public access.
+
+PostCreateView: Allows authenticated users to create a new post. Author is set automatically.
+
+PostUpdateView: Only the author can edit their own posts.
+
+PostDeleteView: Only the author can delete their own posts.
+
+Example: Create View
+
+class PostCreateView(LoginRequiredMixin, CreateView):
+    model = Post
+    template_name = 'blog/post_form.html'
+    fields = ['title', 'content']
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy('blog:post_detail', kwargs={'pk': self.object.pk})
+
+4. URLs
+Operation	URL Pattern	View Name
+List posts	/posts/	post_list
+Post detail	/posts/<pk>/	post_detail
+Create new post	/posts/new/	post_create
+Edit post	/posts/<pk>/edit/	post_update
+Delete post	/posts/<pk>/delete/	post_delete
+5. Templates
+
+post_list.html – shows all posts with title and snippet.
+
+post_detail.html – full post view with edit/delete options if author.
+
+post_form.html – used for create and update posts.
+
+post_confirm_delete.html – confirmation page for deletion.
+
+Notes:
+
+Templates include CSRF tokens and Django messages.
+
+Links for editing/deleting only appear for the post author.
+
+6. Permissions & Access Control
+
+Create post: Only authenticated users.
+
+Update/Delete post: Only the post author.
+
+View posts (list/detail): Public (no login required).
+
+Enforced via LoginRequiredMixin and UserPassesTestMixin.
+
+7. How to Use
+
+View posts: Navigate to /posts/.
+
+Read post: Click on a post title to view details.
+
+Create post:
+
+Log in.
+
+Go to /posts/new/.
+
+Fill in title & content, submit.
+
+Edit post:
+
+Navigate to your post’s detail page.
+
+Click Edit (visible only to author).
+
+Delete post:
+
+Navigate to your post’s detail page.
+
+Click Delete → Confirm deletion.
+
+8. Testing Guidelines
+
+Manual Testing:
+
+Try creating a post as a logged-in user.
+
+Attempt editing/deleting as a different user (should be blocked).
+
+Check that posts are visible in list and detail views for all users.
