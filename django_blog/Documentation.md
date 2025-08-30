@@ -589,3 +589,53 @@ As the comment author, click Edit → modify and save → change persists.
 As the comment author, click Delete → confirm → comment removed and redirected back to post.
 
 As a different authenticated user, try to access the edit/delete URLs for someone else’s comment → should be blocked/redirected.
+
+
+Tagging Feature
+Overview
+
+The tagging feature allows authors to categorize their blog posts using keywords (tags). This improves content organization and helps users discover related posts easily.
+
+How to Add Tags to a Post
+
+When creating or editing a post, you will see a Tags field in the PostForm.
+
+Enter one or more tags separated by commas (e.g., Django, Python, Web Development).
+
+Tags that do not already exist in the database will be automatically created.
+
+After saving, the tags will appear under the blog post.
+
+How Tags Work
+
+Tags are clickable. Clicking on a tag will show all posts associated with that tag.
+
+URL Structure for viewing posts by tag:
+
+/tags/<tag_name>/
+
+
+Example:
+
+/tags/django/
+
+Search Feature
+Overview
+
+The search feature allows users to find posts by keywords in title, content, or tags.
+
+How to Search
+
+Locate the Search Bar in the navigation bar or main page.
+
+Type a keyword (e.g., Django, API, Authentication) and press Enter.
+
+The results page will display all posts containing the keyword in the title, content, or tags.
+
+Permissions
+
+Both tagging and search features are public:
+
+Tags can be added or edited only by authenticated users when creating/updating a post.
+
+Any user (authenticated or not) can search posts or view posts by ta

@@ -2,8 +2,7 @@ from django.urls import path
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import PostListView, PostDetailView, PostCreateView, PostUpdateView, PostDeleteView, CommentCreateView, CommentUpdateView, CommentDeleteView
-
+from .views import PostListView, PostDetailView, PostCreateView, PostUpdateView, PostDeleteView, CommentCreateView, CommentUpdateView, CommentDeleteView, SearchPostListView, PostsByTagListView
 app_name = 'blog'
 
 urlpatterns = [
@@ -22,4 +21,7 @@ urlpatterns = [
     path('post/<int:pk>/comments/new/', views.CommentCreateView.as_view(), name='comment_create'),
     path('comment/<int:pk>/update/', CommentUpdateView.as_view(), name='comment_update'),
     path('comment/<int:pk>/delete/', CommentDeleteView.as_view(), name='comment_delete'),
+
+    path('search/', SearchPostListView.as_view(), name='post_search'),
+    path('tags/<str:tag_name>/', PostsByTagListView.as_view(), name='posts_by_tag'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

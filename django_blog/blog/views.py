@@ -1,12 +1,13 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages  # <-- Add this import
-from .forms import CustomUserCreationForm, UserUpdateForm, ProfileUpdateForm, CommentForm
-from .models import Profile, Comment
+from .forms import CustomUserCreationForm, UserUpdateForm, ProfileUpdateForm, CommentForm, PostForm
+from .models import Profile, Comment, Tag
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from .models import Post
+from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 
 # Renders the main blog homepage
@@ -100,30 +101,62 @@ class PostDetailView(DetailView):
 # Create View - only authenticated users
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
+    tmodel = Post
+    form_class = PostForm
     template_name = 'blog/post_form.html'
-    fields = ['title', 'content']
 
     def form_valid(self, form):
         form.instance.author = self.request.user
-        return super().form_valid(form)
+        response = super().form_valid(form)  # save Post first (self.object)
+        # handle tags from cleaned_data
+        tag_names = form.cleaned_data.get('tags', [])
+        if tag_names:
+            tags_to_set = []
+            for name in tag_names:
+                tag_obj, created = Tag.objects.get_or_create(name=name)
+                tags_to_set.append(tag_obj)
+            self.object.tags.set(tags_to_set)
+        else:
+            self.object.tags.clear()
+        return response
 
-    # Redirect to the detail page of the newly created post
     def get_success_url(self):
         return reverse_lazy('blog:post_detail', kwargs={'pk': self.object.pk})
 
 # Update View - only post author can edit
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
+    form_class = PostForm
     template_name = 'blog/post_form.html'
-    fields = ['title', 'content']
+
+    def get_initial(self):
+        initial = super().get_initial()
+        # prefill tags field with comma-separated tag names
+        initial['tags'] = ', '.join([t.name for t in self.get_object().tags.all()])
+        return initial
 
     def form_valid(self, form):
-        form.instance.author = self.request.user
-        return super().form_valid(form)
+        # author shouldn't change; keep as-is
+        response = super().form_valid(form)
+        tag_names = form.cleaned_data.get('tags', [])
+        if tag_names:
+            tags_to_set = []
+            for name in tag_names:
+                tag_obj, created = Tag.objects.get_or_create(name=name)
+                tags_to_set.append(tag_obj)
+            self.object.tags.set(tags_to_set)
+        else:
+            self.object.tags.clear()
+        return response
 
     def test_func(self):
         post = self.get_object()
         return self.request.user == post.author
+
+    def get_success_url(self):
+        return reverse_lazy('blog:post_detail', kwargs={'pk': self.object.pk})
+    
+
 
 # Delete View - only post author can delete
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
@@ -134,6 +167,44 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def test_func(self):
         post = self.get_object()
         return self.request.user == post.author
+    
+# Search view
+class SearchPostListView(ListView):
+    model = Post
+    template_name = 'blog/search_results.html'
+    context_object_name = 'posts'
+    paginate_by = 10
+
+    def get_queryset(self):
+        qs = Post.objects.all()
+        q = self.request.GET.get('q', '').strip()
+        tag = self.request.GET.get('tag', '').strip()
+        if q:
+            # search title or content (case-insensitive)
+            qs = qs.filter(
+                Q(title__icontains=q) |
+                Q(content__icontains=q) |
+                Q(tags__name__icontains=q)
+            ).distinct()
+        if tag:
+            qs = qs.filter(tags__name__iexact=tag).distinct()
+        return qs.order_by('-published_date')
+
+# Posts-by-tag view (alternative to using SearchPostListView with tag param)
+class PostsByTagListView(ListView):
+    model = Post
+    template_name = 'blog/posts_by_tag.html'
+    context_object_name = 'posts'
+    paginate_by = 10
+
+    def get_queryset(self):
+        tag_name = self.kwargs.get('tag_name')
+        return Post.objects.filter(tags__name__iexact=tag_name).order_by('-published_date')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tag_name'] = self.kwargs.get('tag_name')
+        return context
     
 # Create comment
 class CommentCreateView(LoginRequiredMixin, CreateView):

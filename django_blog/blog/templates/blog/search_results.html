@@ -1,0 +1,22 @@
+{% extends "blog/base.html" %}
+{% block content %}
+<h1>Search results</h1>
+{% if request.GET.q %}
+  <p>Query: "{{ request.GET.q }}"</p>
+{% endif %}
+{% if posts %}
+  {% for post in posts %}
+    <article>
+      <h2><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h2>
+      <p>{{ post.content|truncatewords:40 }}</p>
+      <p>Tags:
+        {% for tag in post.tags.all %}
+          <a href="{% url 'blog:posts_by_tag' tag.name %}">{{ tag.name }}</a>{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+      </p>
+    </article>
+  {% endfor %}
+{% else %}
+  <p>No posts match your query.</p>
+{% endif %}
+{% endblock %}
