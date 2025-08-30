@@ -143,7 +143,7 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.author = self.request.user
-        form.instance.post_id = self.kwargs['post_id']  # link comment to the post
+        form.instance.post_id = self.kwargs['pk']  # using pk instead of post_id
         return super().form_valid(form)
 
 # Update comment
