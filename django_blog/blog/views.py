@@ -2,7 +2,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages  # <-- Add this import
 from .forms import CustomUserCreationForm
-from django.contrib.auth.decorators import login_required
+from .forms import UserUpdateForm, ProfileUpdateForm
+from .models import Profile
 
 # Renders the main blog homepage
 def blog_view(request):
@@ -54,6 +55,27 @@ def logout_view(request):
     return render(request, 'blog/logout.html')
 
 # Renders the user profile page; requires authentication
-@login_required
 def profile_view(request):
-    return render(request, 'blog/user_profile.html')
+    user = request.user
+    # Get or create profile for user
+    profile, created = Profile.objects.get_or_create(user=user)
+
+    if request.method == 'POST':
+        user_form = UserUpdateForm(request.POST, instance=user)
+        profile_form = ProfileUpdateForm(request.POST, request.FILES, instance=profile)
+
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            messages.success(request, "Profile updated successfully!")
+            return redirect('blog:user_profile')
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        user_form = UserUpdateForm(instance=user)
+        profile_form = ProfileUpdateForm(instance=profile)
+
+    return render(request, 'blog/user_profile.html', {
+        'user_form': user_form,
+        'profile_form': profile_form
+    })

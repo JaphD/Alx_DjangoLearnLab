@@ -10,19 +10,31 @@
     <p><strong>First name:</strong> {{ user.first_name }}</p>
     <p><strong>Last name:</strong> {{ user.last_name }}</p>
 </div>
+
+{% if profile_form.instance.profile_picture %}
+    <div>
+        <h3>Current Profile Picture:</h3>
+        <img src="{{ profile_form.instance.profile_picture.url }}" alt="Profile Picture" width="120">
+    </div>
+{% else %}
+    <p>No profile picture uploaded yet.</p>
+{% endif %}
+
+{% if messages %}
+    <ul>
+        {% for message in messages %}
+            <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<h2>Update Profile</h2>
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ user_form.as_p }}
+    {{ profile_form.as_p }}
+    <button type="submit">Update</button>
+</form>
+
 <p><a href="{% url 'blog:logout' %}">Logout</a></p>
 {% endblock %}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
