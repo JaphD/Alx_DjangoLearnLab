@@ -24,7 +24,7 @@ def register_view(request):
     else:
         # Display empty registration form
         form = CustomUserCreationForm()
-    return render(request, 'blog/registration.html', {'form': form})
+    return render(request, 'blog/register.html', {'form': form})
 
 # Handles user login
 def login_view(request):

@@ -41,7 +41,7 @@ def register_view(request):
             messages.error(request, "Please correct the errors below.")
     else:
         form = CustomUserCreationForm()
-    return render(request, 'blog/registration.html', {'form': form})
+    return render(request, 'blog/register.html', {'form': form})
 
 2. User Login
 
