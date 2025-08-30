@@ -315,3 +315,277 @@ Try creating a post as a logged-in user.
 Attempt editing/deleting as a different user (should be blocked).
 
 Check that posts are visible in list and detail views for all users.
+
+
+Comment System — System Documentation
+
+This document describes how the comment system works in the blog app: how comments are stored, how users add/edit/delete them, visibility and permissions, how to test, and common implementation notes.
+
+Summary
+
+Comments are attached to Post entries (many comments → one post).
+
+Authenticated users can create, edit, and delete their own comments.
+
+Anyone (authenticated or not) can read comments on a post’s detail page.
+
+The code uses a Comment model, a CommentForm, class-based views (Create/Update/Delete), and templates integrated into the post_detail template.
+
+Model (data)
+# blog/models.py
+from django.db import models
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class Comment(models.Model):
+    post = models.ForeignKey('Post', on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f'Comment by {self.author} on {self.post.title}'
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('blog:post_detail', kwargs={'pk': self.post.pk})
+
+
+Notes
+
+related_name='comments' → access via post.comments.all().
+
+get_absolute_url() redirects to the post detail after comment creation/edit/delete.
+
+Run migrations after adding this model:
+
+python manage.py makemigrations blog
+python manage.py migrate
+
+Form
+# blog/forms.py
+from django import forms
+from .models import Comment
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['content']
+        widgets = {
+            'content': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Add a comment...'}),
+        }
+        labels = {'content': ''}
+
+
+Validation & suggestions
+
+Add server-side validation if you want (e.g., min/max length).
+
+Keep the form minimal; author and post are set in the view (never from user input).
+
+Views (behavior & code)
+
+Use class-based views with permissions:
+
+# blog/views.py (snippets)
+from django.views.generic import CreateView, UpdateView, DeleteView, DetailView
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.urls import reverse_lazy
+from .models import Comment, Post
+from .forms import CommentForm
+
+# Add comment - typically used for POST from post_detail form
+class CommentCreateView(LoginRequiredMixin, CreateView):
+    model = Comment
+    form_class = CommentForm
+    # template_name not required if form is posted from post_detail, but available if you want a standalone page
+    template_name = 'blog/comment_form.html'
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        form.instance.post_id = self.kwargs['post_id']   # link to Post by id from URL
+        return super().form_valid(form)
+
+# Edit comment
+class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Comment
+    form_class = CommentForm
+    template_name = 'blog/comment_form.html'
+
+    def test_func(self):
+        return self.get_object().author == self.request.user
+
+# Delete comment
+class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Comment
+    template_name = 'blog/comment_confirm_delete.html'
+
+    def get_success_url(self):
+        return self.object.post.get_absolute_url()
+
+    def test_func(self):
+        return self.get_object().author == self.request.user
+
+# Ensure PostDetailView adds a blank CommentForm to the context so post_detail.html can render the inline form
+class PostDetailView(DetailView):
+    model = Post
+    template_name = 'blog/post_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from .forms import CommentForm
+        context['comment_form'] = CommentForm()
+        return context
+
+
+Behavior notes
+
+CommentCreateView expects post_id in URL kwargs (/posts/<post_id>/comments/new/).
+
+LoginRequiredMixin ensures only logged-in users can create/edit/delete.
+
+UserPassesTestMixin ensures only the comment author can edit/delete.
+
+URLs
+
+Add the comment routes to blog/urls.py:
+
+from .views import CommentCreateView, CommentUpdateView, CommentDeleteView
+
+urlpatterns += [
+    path('posts/<int:post_id>/comments/new/', CommentCreateView.as_view(), name='comment_create'),
+    path('comments/<int:pk>/edit/', CommentUpdateView.as_view(), name='comment_update'),
+    path('comments/<int:pk>/delete/', CommentDeleteView.as_view(), name='comment_delete'),
+]
+
+
+URL design rationale
+
+posts/<post_id>/comments/new/ is intuitive for creating a comment for a specific post.
+
+Editing/deleting uses the comment pk because those operations act on the comment resource.
+
+Templates / Integration
+In post_detail.html (integrated)
+
+Include the post content first, then the comments section and the inline form:
+
+<!-- Post content (title, content, meta) -->
+<h1>{{ post.title }}</h1>
+<p>{{ post.content }}</p>
+<p>By {{ post.author }}</p>
+
+<hr>
+
+<h2>Comments</h2>
+{% for comment in post.comments.all %}
+  <div class="comment">
+    <p><strong>{{ comment.author.username }}</strong> &middot; {{ comment.created_at|date:"M j, Y H:i" }}</p>
+    <p>{{ comment.content|linebreaks }}</p>
+    {% if user == comment.author %}
+      <p>
+        <a href="{% url 'blog:comment_update' comment.pk %}">Edit</a> |
+        <a href="{% url 'blog:comment_delete' comment.pk %}">Delete</a>
+      </p>
+    {% endif %}
+  </div>
+{% empty %}
+  <p>No comments yet.</p>
+{% endfor %}
+
+{% if user.is_authenticated %}
+  <h3>Add a comment</h3>
+  <form method="post" action="{% url 'blog:comment_create' post.pk %}">
+    {% csrf_token %}
+    {{ comment_form.as_p }}
+    <button type="submit">Post Comment</button>
+  </form>
+{% else %}
+  <p><a href="{% url 'blog:login' %}">Login</a> to post a comment.</p>
+{% endif %}
+
+comment_form.html (standalone create/edit):
+{% extends "blog/base.html" %}
+{% block content %}
+  <h2>{% if form.instance.pk %}Edit Comment{% else %}Add Comment{% endif %}</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save</button>
+  </form>
+  <a href="{{ form.instance.post.get_absolute_url }}">Cancel</a>
+{% endblock %}
+
+comment_confirm_delete.html:
+{% extends "blog/base.html" %}
+{% block content %}
+  <h2>Delete Comment</h2>
+  <p>Are you sure you want to delete this comment?</p>
+  <p>{{ object.content }}</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit">Yes, delete</button>
+  </form>
+  <a href="{{ object.post.get_absolute_url }}">Cancel</a>
+{% endblock %}
+
+
+Important
+
+Always include {% csrf_token %} in comment forms.
+
+The inline form posts to comment_create URL; the create view handles the POST and redirects back to the post.
+
+Permissions & Visibility (Rules)
+
+Read visibility: All comments for a post are displayed on the post detail page: post.comments.all(). (If you later add moderation/drafts, filter accordingly.)
+
+Create: Only authenticated users can create comments (LoginRequiredMixin). Attempting to POST while anonymous results in a redirect to login.
+
+Edit/Delete: Only the comment’s author may edit or delete it. This is enforced by UserPassesTestMixin with test_func checking comment.author == request.user.
+
+CSRF: All comment form submissions must include CSRF tokens (Django templates do this via {% csrf_token %}).
+
+Data integrity: post and author are set server-side (never from user input).
+
+Security & Validation
+
+Escape output: Template output uses {{ comment.content }} (Django auto-escapes). If you render HTML, sanitize it to avoid XSS.
+
+CSRF protection: Forms include CSRf tokens, as required.
+
+Rate limiting / spam: Not included by default — consider throttling or using a 3rd-party service to prevent abuse.
+
+Input validation: Add validation (min/max length) in CommentForm if required.
+
+Soft delete: If you want recoverable comments, implement a is_deleted boolean instead of hard delete.
+
+Admin
+
+Register Comment in blog/admin.py:
+
+from django.contrib import admin
+from .models import Comment
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ('author', 'post', 'created_at')
+    search_fields = ('author__username', 'content')
+
+Testing
+Manual tests
+
+Open a post detail (e.g., /posts/1/) as an anonymous user: comments must be visible, inline form replaced with link to login.
+
+Login, visit the same post, fill inline comment form, submit — you should be redirected back to the post and see the new comment.
+
+As the comment author, click Edit → modify and save → change persists.
+
+As the comment author, click Delete → confirm → comment removed and redirected back to post.
+
+As a different authenticated user, try to access the edit/delete URLs for someone else’s comment → should be blocked/redirected.
