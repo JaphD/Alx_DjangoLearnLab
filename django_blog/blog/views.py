@@ -144,18 +144,18 @@ class SearchPostListView(ListView):
         return Post.objects.none()
 
 # Posts-by-tag view (alternative to using SearchPostListView with tag param)
-class PostsByTagListView(ListView):
+class PostByTagListView(ListView):
     model = Post
     template_name = 'blog/posts_by_tag.html'
     context_object_name = 'posts'
 
     def get_queryset(self):
-        tag_name = self.kwargs.get('tag_name')
-        return Post.objects.filter(tags__name__iexact=tag_name).order_by('-published_date')
+        tag_slug = self.kwargs.get('tag_slug')
+        return Post.objects.filter(tags__slug__iexact=tag_slug).order_by('-published_date')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['tag_name'] = self.kwargs.get('tag_name')
+        context['tag_slug'] = self.kwargs.get('tag_slug')
         return context
     
 # Create comment
