@@ -8,7 +8,6 @@
       <p>{{ post.content|truncatewords:40 }}</p>
     </article>
   {% endfor %}
-  {% include "pagination_snippet.html" %}
 {% else %}
   <p>No posts found for this tag.</p>
 {% endif %}

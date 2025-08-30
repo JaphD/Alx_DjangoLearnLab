@@ -1,8 +1,9 @@
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
-from .models import Profile, Post, Comment, Tag
+from .models import Profile, Post, Comment
 from django import forms
+from taggit.forms import TagWidget
 
 class CustomUserCreationForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
@@ -24,9 +25,9 @@ class ProfileUpdateForm(forms.ModelForm):
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ['title', 'content', 'tags']  # tags included automatically by taggit
+        fields = ['title', 'content', 'tags']
         widgets = {
-            'tags': forms.TextInput(attrs={'placeholder': 'Enter comma-separated tags'}),
+            'tags': TagWidget(attrs={'placeholder': 'Enter tags separated by commas'}),
         }
 
 class CommentForm(forms.ModelForm):
