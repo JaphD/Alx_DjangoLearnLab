@@ -88,8 +88,9 @@ def profile_view(request):
 # List View - shows all posts
 class PostListView(ListView):
     model = Post
-    template_name = 'blog/post_list.html'  # custom template
+    template_name = 'blog/post_list.html'
     context_object_name = 'posts'
+    paginate_by = 10
     ordering = ['-published_date']
 
 # Detail View - single post
@@ -101,62 +102,20 @@ class PostDetailView(DetailView):
 # Create View - only authenticated users
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
-    tmodel = Post
     form_class = PostForm
     template_name = 'blog/post_form.html'
 
     def form_valid(self, form):
         form.instance.author = self.request.user
-        response = super().form_valid(form)  # save Post first (self.object)
-        # handle tags from cleaned_data
-        tag_names = form.cleaned_data.get('tags', [])
-        if tag_names:
-            tags_to_set = []
-            for name in tag_names:
-                tag_obj, created = Tag.objects.get_or_create(name=name)
-                tags_to_set.append(tag_obj)
-            self.object.tags.set(tags_to_set)
-        else:
-            self.object.tags.clear()
-        return response
+        return super().form_valid(form)
 
-    def get_success_url(self):
-        return reverse_lazy('blog:post_detail', kwargs={'pk': self.object.pk})
-
-# Update View - only post author can edit
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
     form_class = PostForm
     template_name = 'blog/post_form.html'
 
-    def get_initial(self):
-        initial = super().get_initial()
-        # prefill tags field with comma-separated tag names
-        initial['tags'] = ', '.join([t.name for t in self.get_object().tags.all()])
-        return initial
-
-    def form_valid(self, form):
-        # author shouldn't change; keep as-is
-        response = super().form_valid(form)
-        tag_names = form.cleaned_data.get('tags', [])
-        if tag_names:
-            tags_to_set = []
-            for name in tag_names:
-                tag_obj, created = Tag.objects.get_or_create(name=name)
-                tags_to_set.append(tag_obj)
-            self.object.tags.set(tags_to_set)
-        else:
-            self.object.tags.clear()
-        return response
-
     def test_func(self):
-        post = self.get_object()
-        return self.request.user == post.author
-
-    def get_success_url(self):
-        return reverse_lazy('blog:post_detail', kwargs={'pk': self.object.pk})
-    
-
+        return self.request.user == self.get_object().author
 
 # Delete View - only post author can delete
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
@@ -173,29 +132,22 @@ class SearchPostListView(ListView):
     model = Post
     template_name = 'blog/search_results.html'
     context_object_name = 'posts'
-    paginate_by = 10
 
     def get_queryset(self):
-        qs = Post.objects.all()
-        q = self.request.GET.get('q', '').strip()
-        tag = self.request.GET.get('tag', '').strip()
-        if q:
-            # search title or content (case-insensitive)
-            qs = qs.filter(
-                Q(title__icontains=q) |
-                Q(content__icontains=q) |
-                Q(tags__name__icontains=q)
-            ).distinct()
-        if tag:
-            qs = qs.filter(tags__name__iexact=tag).distinct()
-        return qs.order_by('-published_date')
+        query = self.request.GET.get('q', '')
+        if query:
+            return Post.objects.filter(
+                Q(title__icontains=query) |
+                Q(content__icontains=query) |
+                Q(tags__name__icontains=query)
+            ).distinct().order_by('-published_date')
+        return Post.objects.none()
 
 # Posts-by-tag view (alternative to using SearchPostListView with tag param)
 class PostsByTagListView(ListView):
     model = Post
     template_name = 'blog/posts_by_tag.html'
     context_object_name = 'posts'
-    paginate_by = 10
 
     def get_queryset(self):
         tag_name = self.kwargs.get('tag_name')

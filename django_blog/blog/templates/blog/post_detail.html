@@ -5,13 +5,12 @@
 
 <hr>
 
-<p>
-  Tags:
-  {% for tag in post.tags.all %}
-    <a href="{% url 'blog:posts_by_tag' tag.name %}">{{ tag.name }}</a>
-  {% empty %}
-    <span>No tags</span>
-  {% endfor %}
+<p>Tags:
+    {% for tag in post.tags.all %}
+        <a href="{% url 'blog:posts_by_tag' tag.name %}">{{ tag.name }}</a>{% if not forloop.last %}, {% endif %}
+    {% empty %}
+        No tags
+    {% endfor %}
 </p>
 
 

@@ -22,27 +22,12 @@ class ProfileUpdateForm(forms.ModelForm):
         fields = ['bio', 'profile_picture']
 
 class PostForm(forms.ModelForm):
-    # user-friendly field to add tags as comma-separated names
-    tags = forms.CharField(
-        required=False,
-        help_text='Comma-separated tags (e.g. django, python, tutorial).',
-        widget=forms.TextInput(attrs={'placeholder': 'tag1, tag2, tag3'})
-    )
-
     class Meta:
         model = Post
-        fields = ['title', 'content']
-
-    def clean_tags(self):
-        raw = self.cleaned_data.get('tags', '')
-        # Normalize: split by comma, strip whitespace, remove empties, lowercase unique
-        names = [t.strip() for t in raw.split(',') if t.strip()]
-        # optionally enforce a max number or max length per tag
-        unique_names = []
-        for n in names:
-            if n.lower() not in [u.lower() for u in unique_names]:
-                unique_names.append(n)
-        return unique_names
+        fields = ['title', 'content', 'tags']  # tags included automatically by taggit
+        widgets = {
+            'tags': forms.TextInput(attrs={'placeholder': 'Enter comma-separated tags'}),
+        }
 
 class CommentForm(forms.ModelForm):
     class Meta:
