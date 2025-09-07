@@ -1,7 +1,6 @@
 Social Media API Documentation
-
 Overview
-This document provides a comprehensive guide to the Social Media API, a RESTful service built with Django and Django REST Framework. The API enables core social media functionalities, including user authentication, profile management, and the ability for users to create and interact with posts and comments. The system uses token-based authentication to secure endpoints and enforces permissions to protect user data.
+This is a comprehensive guide to the Social Media API, a RESTful service built with Django and Django REST Framework. The API enables core social media functionalities, including user authentication, profile management, and the ability for users to create and interact with posts and comments. It now includes features for users to follow other users and view a personalized feed. The system uses token-based authentication to secure endpoints and enforces permissions to protect user data.
 
 Component	Technology	Description
 Framework	Django, Django REST Framework	The core backend and API development framework.
@@ -48,119 +47,124 @@ Run the Server: Start the local development server to access the API at http://l
 Bash
 
 python manage.py runserver
-Authentication Endpoints
-These endpoints are used to manage user authentication and profiles. Endpoints that require authentication must have the header Authorization: Token <your_token>.
+Authentication and User Management
+The following endpoints manage user authentication, profiles, and relationships.
 
-POST /api/accounts/register/ - Register a New User
-Permissions: AllowAny
+User Model Changes
+The custom User model in accounts/models.py has been updated to include a self-referential many-to-many relationship. The followers field represents who is following the user, while the following field (created automatically by the related_name) represents the users the current user follows.
 
-Description: Creates a new user account and automatically generates a token for immediate use.
+Python
 
-Body:
+class User(AbstractUser):
+    # ...
+    followers = models.ManyToManyField('self', symmetrical=False, related_name='following', blank=True)
+    # ...
+Follow a User
+Method: POST
+
+URL: /api/accounts/follow/<int:user_id>/
+
+Permissions: IsAuthenticated
+
+Description: Allows the authenticated user to follow another user specified by user_id.
+
+Example Request:
+
+Bash
+
+POST /api/accounts/follow/2/ HTTP/1.1
+Host: localhost:8000
+Authorization: Token <your_token>
+Response (200 OK):
 
 JSON
 
 {
-  "username": "jane_doe",
-  "email": "jane@example.com",
-  "password": "strong-password",
-  "bio": "I'm a developer building a social media app."
+    "status": "You are now following jerryd25"
 }
-Response (201 Created): Returns the user's data and the authentication token.
+Unfollow a User
+Method: POST
+
+URL: /api/accounts/unfollow/<int:user_id>/
+
+Permissions: IsAuthenticated
+
+Description: Allows the authenticated user to unfollow another user.
+
+Example Request:
+
+Bash
+
+POST /api/accounts/unfollow/2/ HTTP/1.1
+Host: localhost:8000
+Authorization: Token <your_token>
+Response (200 OK):
 
 JSON
 
 {
-  "user": { "id": 1, "username": "jane_doe", "email": "jane@example.com", ... },
-  "token": "aeb49644f1a659797ed81bf3e9330b6442b1f094"
+    "status": "You have unfollowed jerryd25"
 }
-POST /api/accounts/login/ - Authenticate a User
-Permissions: AllowAny
+Posts, Comments, and Feeds
+These endpoints manage user-generated content, including the new personalized feed.
 
-Description: Authenticates a user with a username and password and returns their existing token.
+Access the User Feed
+Method: GET
 
-Body:
+URL: /api/feed/
+
+Permissions: IsAuthenticated
+
+Description: Retrieves a paginated list of posts from all users that the authenticated user is following. Posts are ordered by most recent first.
+
+Example Request:
+
+Bash
+
+GET /api/feed/ HTTP/1.1
+Host: localhost:8000
+Authorization: Token <your_token>
+Response (200 OK):
 
 JSON
 
 {
-  "username": "jane_doe",
-  "password": "strong-password"
+    "count": 2,
+    "next": null,
+    "previous": null,
+    "results": [
+        {
+            "id": 4,
+            "author": { "id": 2, "username": "jerryd25", ... },
+            "title": "User B's post 2",
+            "content": "This is a post from the user you follow.",
+            "created_at": "2025-09-07T18:54:44.574593Z",
+            "comments": []
+        },
+        {
+            "id": 3,
+            "author": { "id": 2, "username": "jerryd25", ... },
+            "title": "User B's post 1",
+            "content": "This is a post from the user you follow.",
+            "created_at": "2025-09-07T18:54:34.134462Z",
+            "comments": []
+        }
+    ]
 }
-Response (200 OK): Returns the user's data and their token.
+Other Post and Comment Endpoints
+GET /api/posts/: List all posts.
 
-GET/PATCH /api/accounts/profile/ - Manage User Profile
-Permissions: IsAuthenticated
+POST /api/posts/: Create a new post.
 
-Description: Retrieves or updates the currently authenticated user's profile information.
+GET/PUT/PATCH/DELETE /api/posts/<id>/: Manage a single post.
 
-Body (PATCH example):
+GET/POST /api/posts/<post_id>/comments/: List or create comments on a post.
 
-JSON
+GET/PUT/PATCH/DELETE /api/posts/<post_id>/comments/<id>/: Manage a single comment.
 
-{
-  "bio": "A passionate developer and API enthusiast."
-}
-Posts and Comments Endpoints
-These endpoints manage user-generated content. All are protected and require a valid authentication token. The IsOwnerOrReadOnly permission ensures users can only modify their own content.
+Permissions & Rules
+Authentication: All endpoints except register and login require a valid token in the Authorization header.
 
-GET /api/posts/ - List All Posts
-Permissions: IsAuthenticated
+Ownership: The IsOwnerOrReadOnly permission ensures that users can only PUT, PATCH, or DELETE their own posts and comments.
 
-Description: Fetches a paginated list of all posts.
-
-Query Parameters:
-
-?search=hello: Searches posts where the title or content contains "hello".
-
-?author=1: Filters posts to show only those by the user with ID 1.
-
-Response (200 OK): A paginated list of posts, including nested comments for each post.
-
-POST /api/posts/ - Create a Post
-Permissions: IsAuthenticated
-
-Description: Creates a new post for the authenticated user.
-
-Body:
-
-JSON
-
-{
-  "title": "My First Post",
-  "content": "This is a great day for building APIs."
-}
-Response (201 Created): Returns the newly created post object.
-
-GET/PUT/PATCH/DELETE /api/posts/<id>/ - Manage a Single Post
-Permissions: IsAuthenticated
-
-Description: Allows retrieval, full update, partial update, or deletion of a specific post.
-
-Rules: PUT, PATCH, and DELETE requests are only allowed if the authenticated user is the author of the post.
-
-GET /api/posts/<post_id>/comments/ - List Comments
-Permissions: IsAuthenticated
-
-Description: Fetches all comments associated with a specific post.
-
-POST /api/posts/<post_id>/comments/ - Create a Comment
-Permissions: IsAuthenticated
-
-Description: Creates a new comment on a specific post. The comment is automatically linked to the authenticated user.
-
-Body:
-
-JSON
-
-{
-  "content": "I love this post!"
-}
-Response (201 Created): Returns the newly created comment object.
-
-GET/PUT/PATCH/DELETE /api/posts/<post_id>/comments/<id>/ - Manage a Single Comment
-Permissions: IsAuthenticated
-
-Description: Allows retrieval, update, or deletion of a specific comment on a specific post.
-
-Rules: PUT, PATCH, and DELETE requests are only allowed if the authenticated user is the author of the comment.
+Following: Users can only modify their own following list.
