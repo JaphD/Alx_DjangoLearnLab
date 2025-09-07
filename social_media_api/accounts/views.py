@@ -5,14 +5,9 @@ from django.contrib.auth import authenticate
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .serializers import RegisterSerializer, LoginSerializer, UserSerializer
 from django.contrib.auth import get_user_model
-from rest_framework import permissions
 from rest_framework.decorators import api_view, permission_classes
 
-# The following line is added to satisfy the specific checker condition
-from django.contrib.auth import get_user_model as CustomUser
-
 User = get_user_model()
-
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -55,11 +50,9 @@ class ProfileView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user
-
-_ = CustomUser.objects.all() 
-
+    
 @api_view(['POST'])
-@permission_classes([permissions.IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def follow_user(request, user_id):
     try:
         user_to_follow = User.objects.get(id=user_id)
@@ -74,7 +67,7 @@ def follow_user(request, user_id):
     return Response({'status': f'You are now following {user_to_follow.username}'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
-@permission_classes([permissions.IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def unfollow_user(request, user_id):
     try:
         user_to_unfollow = User.objects.get(id=user_id)

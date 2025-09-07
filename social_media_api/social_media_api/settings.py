@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'rest_framework_nested',
     'accounts',
     'posts',
+    'notifications',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
