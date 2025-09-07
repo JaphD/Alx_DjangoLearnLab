@@ -59,7 +59,7 @@ class ProfileView(generics.RetrieveUpdateAPIView):
 _ = CustomUser.objects.all() 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([permissions.IsAuthenticated])
 def follow_user(request, user_id):
     try:
         user_to_follow = User.objects.get(id=user_id)
@@ -74,7 +74,7 @@ def follow_user(request, user_id):
     return Response({'status': f'You are now following {user_to_follow.username}'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([permissions.IsAuthenticated])
 def unfollow_user(request, user_id):
     try:
         user_to_unfollow = User.objects.get(id=user_id)
