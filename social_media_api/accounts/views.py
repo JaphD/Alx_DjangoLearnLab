@@ -36,7 +36,7 @@ class LoginView(generics.GenericAPIView):
             password=serializer.validated_data['password']
         )
         if user:
-            token = Token.objects.get_or_create(user=user)
+            token, created = Token.objects.get_or_create(user=user)
             return Response({
                 'user': UserSerializer(user).data,
                 'token': token.key
