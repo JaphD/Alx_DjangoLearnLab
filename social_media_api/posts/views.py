@@ -52,10 +52,7 @@ class UserFeedView(ListAPIView):
 @permission_classes([permissions.IsAuthenticated])
 def like_post(request, pk):
     post = get_object_or_404(Post, pk=pk)
-    # generics.get_object_or_404(Post, pk=pk)
     user = request.user
-
-    like, created = Like.objects.get_or_create(user=request.user, post=post)
 
     if Like.objects.filter(user=user, post=post).exists():
         return Response({'detail': 'You have already liked this post.'}, status=status.HTTP_409_CONFLICT)
