@@ -88,9 +88,8 @@ def profile_view(request):
 # List View - shows all posts
 class PostListView(ListView):
     model = Post
-    template_name = 'blog/post_list.html'
+    template_name = 'blog/post_list.html'  # custom template
     context_object_name = 'posts'
-    paginate_by = 10
     ordering = ['-published_date']
 
 # Detail View - single post
@@ -117,6 +116,7 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     def test_func(self):
         return self.request.user == self.get_object().author
 
+
 # Delete View - only post author can delete
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Post
@@ -132,30 +132,37 @@ class SearchPostListView(ListView):
     model = Post
     template_name = 'blog/search_results.html'
     context_object_name = 'posts'
+    paginate_by = 10
 
     def get_queryset(self):
-        query = self.request.GET.get('q', '')
-        if query:
-            return Post.objects.filter(
-                Q(title__icontains=query) |
-                Q(content__icontains=query) |
-                Q(tags__name__icontains=query)
-            ).distinct().order_by('-published_date')
-        return Post.objects.none()
+        qs = Post.objects.all()
+        q = self.request.GET.get('q', '').strip()
+        tag = self.request.GET.get('tag', '').strip()
+        if q:
+            # search title or content (case-insensitive)
+            qs = qs.filter(
+                Q(title__icontains=q) |
+                Q(content__icontains=q) |
+                Q(tags__name__icontains=q)
+            ).distinct()
+        if tag:
+            qs = qs.filter(tags__name__iexact=tag).distinct()
+        return qs.order_by('-published_date')
 
 # Posts-by-tag view (alternative to using SearchPostListView with tag param)
-class PostByTagListView(ListView):
+class PostsByTagListView(ListView):
     model = Post
     template_name = 'blog/posts_by_tag.html'
     context_object_name = 'posts'
+    paginate_by = 10
 
     def get_queryset(self):
-        tag_slug = self.kwargs.get('tag_slug')
-        return Post.objects.filter(tags__slug__iexact=tag_slug).order_by('-published_date')
+        tag_name = self.kwargs.get('tag_name')
+        return Post.objects.filter(tags__name__iexact=tag_name).order_by('-published_date')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['tag_slug'] = self.kwargs.get('tag_slug')
+        context['tag_name'] = self.kwargs.get('tag_name')
         return context
     
 # Create comment
