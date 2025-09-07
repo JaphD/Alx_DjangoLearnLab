@@ -52,6 +52,7 @@ class UserFeedView(ListAPIView):
 @permission_classes([permissions.IsAuthenticated])
 def like_post(request, pk):
     post = get_object_or_404(Post, pk=pk)
+    # generics.get_object_or_404(Post, pk=pk)
     user = request.user
 
     like, created = Like.objects.get_or_create(user=user, post=post)
